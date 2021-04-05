@@ -1,14 +1,69 @@
+import json
+
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from django.db import IntegrityError
+
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+
+
+from .models import User, Post, Like
 
 
 def index(request):
     return render(request, "network/index.html")
+
+
+def like(request):
+    try:
+        like = Like.objects.get(user=request.user, pk=1)
+    except Like.DoesNotExist:
+        return JsonResponse("error": "not found"}, status=404)
+
+    if request.method == "PUT":
+        data = json.loads(request.liked)
+        if data.get("liked") is not None:
+            # like.
+            ##################### I stopped here.
+
+    return JsonResponse(post)
+
+
+
+
+def post_view(request):
+
+    posts = Post.objects.all()
+    posts = posts.order_by("-timestamp").all()
+    # return HttpResponse(posts)
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+
+
+@csrf_exempt
+@login_required
+def compose(request):
+
+    # check if post
+    # if request.method != "POST":
+    #     return JsonResponse({"error": "POST request required."}, status=400)
+
+    # load the data
+    data = json.loads(request.body)
+
+    # Get the Post contents
+    body = data.get("body", "")
+    author = User.objects.get(id=request.user.id)
+
+    # Save the post
+    post = Post(author=author, body=body)
+    post.save()
+
+    return HttpResponse("saved")
 
 
 def login_view(request):

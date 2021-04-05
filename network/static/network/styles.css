@@ -2,3 +2,18 @@
     padding: 30px;
     
 }
+
+#newPost {
+    /* display: block; */
+    border: solid 1px;
+    padding: 20px;
+}
+
+ul {
+    list-style-type: none;
+  }
+
+.post_item {
+    border: solid 1px;
+    padding: 10px;
+}

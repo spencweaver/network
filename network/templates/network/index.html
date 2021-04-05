@@ -4,12 +4,16 @@
 {% block body %}
     <h1 class="alert">All Posts</h1>
 
-    <button class="btn btn-sm btn-outline-primary" id="newPost">New Post</button>
-
     <div id="newPost">
         <form>
-            <input type="text"> Name
+            <label>New Post: </label>
+            <input class="post_body" type="text">
+            <input type="submit" class="btn btn-sm btn-outline-primary">
         </form>
+    </div>
+
+    <div id="posts_list">
+        
     </div>
 {% endblock %}
 
