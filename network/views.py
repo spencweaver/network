@@ -20,18 +20,23 @@ def index(request):
 
 
 def like(request):
-    try:
-        like = Like.objects.get(user=request.user, pk=1)
-    except Like.DoesNotExist:
-        return JsonResponse("error": "not found"}, status=404)
+    likes = Like.objects.get(liker=request.user)
+    return HttpResponse(likes)
+    
+    # except Like.DoesNotExist:
+        # return JsonResponse("error": "not found"}, status=404)
 
     if request.method == "PUT":
         data = json.loads(request.liked)
         if data.get("liked") is not None:
+            like.liked = data["liked"]
+        like.save()
+        return HttpResponse(status=204)
+
             # like.
             ##################### I stopped here.
 
-    return JsonResponse(post)
+    return HttpResponse("hello")
 
 
 
