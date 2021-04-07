@@ -18,9 +18,22 @@ from .models import User, Post, Like
 def index(request):
     return render(request, "network/index.html")
 
-
-def like(request):
+@csrf_exempt
+def like(request, post_id):
     likes = Like.objects.get(liker=request.user)
+
+    post = Post.objects.get(id=post_id)
+
+    likes.post.add(post)
+
+    if request.method == "PUT":
+        return HttpResponse("put")
+        # data = json.loads(request.liked)
+        # if data.get("liked") is not None:
+            
+            
+
+    
     return HttpResponse(likes)
     
     # except Like.DoesNotExist:
@@ -40,13 +53,14 @@ def like(request):
 
 
 
-
+@csrf_exempt
 def post_view(request):
 
     posts = Post.objects.all()
     posts = posts.order_by("-timestamp").all()
     # return HttpResponse(posts)
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    if request.method == "GET":
+        return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
 @csrf_exempt
@@ -54,8 +68,8 @@ def post_view(request):
 def compose(request):
 
     # check if post
-    # if request.method != "POST":
-    #     return JsonResponse({"error": "POST request required."}, status=400)
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
 
     # load the data
     data = json.loads(request.body)
@@ -68,7 +82,9 @@ def compose(request):
     post = Post(author=author, body=body)
     post.save()
 
-    return HttpResponse("saved")
+    return JsonResponse({
+        "hello": "this worked"
+    })
 
 
 def login_view(request):

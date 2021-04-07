@@ -20,7 +20,7 @@ class Post(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.author}: {self.body}"
+        return f"{self.author}: {self.body} id:{self.id}"
 
     def serialize(self):
         return {

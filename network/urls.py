@@ -13,5 +13,5 @@ urlpatterns = [
     path("posts", views.compose, name="compose"),
     # path("posts/<int:post_id>", views.post, name="post"),
     path("post_view", views.post_view, name="post_view"),
-    path("like", views.like, name="like"),
+    path("like/<int:post_id>", views.like, name="like"),
 ]
