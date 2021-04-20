@@ -17,3 +17,8 @@ ul {
     border: solid 1px;
     padding: 10px;
 }
+
+.timestamp {
+    float: right;
+    color: gray;
+}
