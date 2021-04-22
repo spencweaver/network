@@ -3,7 +3,9 @@
 
 
 {% block body %}
-    {% if user_profile %}
+    {% if user_profile == "Following Posts" %}
+        <h1 class="alert">{{ user_profile }}</h1>
+    {% elif user_profile.username %}
         <h1 class="alert">{{ user_profile.username }}'s Profile</h1>
         <h2>Followers: {{ user_profile.followings.count }}</h2>
         {% if user.is_authenticated and user_profile.id != user.id %}
@@ -18,29 +20,38 @@
         <h1 class="alert">All Posts</h1>
     {% endif %}
 
-    <form id="edit_post">
-         <div class="edit-group">
-             Body: <input id="post_edit_text">
-         </div>
-    </form>
-
 
     <div id="newPost">
         <form>
             <label>New Post: </label>
-            <input class="post_body" type="text" placeholder="New Post">
+            <textarea class="post_body" type="text" placeholder="New Post"></textarea>
             <input type="submit" class="btn btn-sm btn-outline-primary">
         </form>
     </div>
 
     {% for p in page %}
         <ul>
-            <li class="post_item">
-                <a href="{% url 'index' p.author.id %}">{{ p.author }}</a> 
-                <p>{{ p.body }} <span class="timestamp">{{ p.timestamp }}</span></p>
-                <p>Likes: {{ p.likes.count }}</p>
-                <a href="{% url 'like' p.id %}">Like</a>
-                <button class="edit_button edit_button_{{ p.id }}" data-post="{{ p.id }}">Edit</button>
+            <li class="post_item post_{{ p.id }}">
+                
+                    <a href="{% url 'index' p.author.id %}">{{ p.author }}</a> 
+                    <div class="edit_button_{{ p.id }}">
+                        <p>{{ p.body }}</div> <span class="timestamp">{{ p.timestamp }}</span></p>
+                    <p class="like_counter_{{ p.id }}">Likes: {{ p.likes.count }}</p>
+
+                    
+                    {% for liked in p.likes.all %}
+                        {% if liked.liker.id == user.id and p.author.id != user.id %}
+                            <button class="like_button" data-post="{{ p.id }}">Unlike</button>
+                        {% endif %} 
+                    {% endfor %}
+
+                    {% if p.author.id != user.id %}
+                        <button class="like_button" data-post="{{ p.id }}">Like</button> 
+                    {% endif %}
+                    
+                    {% if p.author.id == user.id %}
+                        <button class="edit_button" data-post="{{ p.id }}">Edit</button>
+                    {% endif %}
             </li>
         </ul>
         

@@ -3,7 +3,7 @@ import json
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -24,11 +24,32 @@ def home(request):
 
 
 def index(request, user_id):
-    # initialize following
+    # initialize following and user_profile
     following = True
 
+    # Check to see if following view
+    view = request.GET.get('view', 0)
+    if view != 0:
+        user_profile = 'Following Posts'
+        # Get the follower
+        try:
+            follower = UserUser.objects.get(follower=view)
+            following = follower.following.all()
+
+            # Create empty object of posts
+            posts = Post.objects.none()
+
+            # query for all the posts and merge
+            for f in following:
+                post = Post.objects.filter(author=f.id)
+                posts = post | posts
+        except ObjectDoesNotExist:
+            return render(request, "network/error.html", {
+                "error": "You are not following anyone"
+            })
+
     # Make sure it is not the index path
-    if user_id > 0:
+    elif user_id > 0:
         user_profile = User.objects.get(id=user_id)
         posts = Post.objects.filter(author=user_profile)
         f = request.user.followers.all()
@@ -37,8 +58,8 @@ def index(request, user_id):
             following = False
                 
     else: 
-        posts = Post.objects.all()
         user_profile = None
+        posts = Post.objects.all()
 
     # Order the posts and paginate
     posts = posts.order_by("-timestamp").all()
@@ -49,18 +70,29 @@ def index(request, user_id):
         "page": p.page(page_number),
         "user_profile": user_profile,
         "following": following,
+        "like": like,
     })
 
 
 @csrf_exempt
 def edit(request, post_id):
+    # Make sure the post exists
     try:
         post = Post.objects.get(id=post_id)
     except Post.doesNotExist:
         return JsonResponse({"error": "Post not found."}, status=404)
-    return JsonResponse(post.serialize())
-    # return JsonResponse([post.serialize() for post in posts], safe=False)
+    
+    if request.method == 'POST':
+        # load the data
+        data = json.loads(request.body)
 
+        # get the edit content and update
+        body = data.get("body_edit", "")
+        post.body = body
+        post.save()
+
+        # give to fetch function
+    return JsonResponse(post.serialize())
 
 
 @csrf_exempt
@@ -73,7 +105,6 @@ def follow(request, user_id):
         useruser = UserUser.objects.get(follower=request.user)
     except ObjectDoesNotExist:
         useruser = None
-        return HttpResponse("follow")
     
     # check if already following
     if request.user.followers.filter(following=following).exists():
@@ -94,6 +125,11 @@ def follow(request, user_id):
 
 @csrf_exempt
 def like(request, post_id):
+    # get the put information
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        if data.get("liked") is not None:
+            archive = data["liked"]
     # Look up the post
     post = Post.objects.get(id=post_id)
     
@@ -107,34 +143,18 @@ def like(request, post_id):
     if likes is None:
         likes = Like(liker=request.user)
         likes.save()
+
+    # Check to see if already liked
+    elif request.user.likers.filter(post=post).exists():
+        likes.post.remove(post)
     
-
-    likes.post.add(post)
-    post.save()
-
-    if request.method == "PUT":
-        return HttpResponse("put")
-        # data = json.loads(request.liked)
-        # if data.get("liked") is not None:
-
-    # count = len(likes.posts)         
-    return HttpResponseRedirect(reverse("index", args=[0]))
+    # add like to post
+    else:
+        likes.post.add(post)
     
-    # except Like.DoesNotExist:
-        # return JsonResponse("error": "not found"}, status=404)
-
-    if request.method == "PUT":
-        data = json.loads(request.liked)
-        if data.get("liked") is not None:
-            like.liked = data["liked"]
-        like.save()
-        return HttpResponse(status=204)
-
-            # like.
-            ##################### I stopped here.
-
-    return HttpResponse("hello")
-
+    # Save the change
+    post.save()      
+    return JsonResponse(post.serialize())    
 
 
 @csrf_exempt

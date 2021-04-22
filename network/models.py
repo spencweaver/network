@@ -20,10 +20,7 @@ class Post(models.Model):
     author = models.ForeignKey("User", on_delete=models.PROTECT, related_name="posted")
     body = models.TextField(blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    # likes_count = models.IntegerField()
 
-    # def likers_count(obj):
-    #     return obj.likers.all().count()
 
     def __str__(self):
         return f"{self.author}: {self.body} id:{self.id}"
@@ -34,7 +31,7 @@ class Post(models.Model):
             "author": self.author.username,
             "body": self.body,
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
-            "likes": self.likes.count()
+            "likes_count": self.likes.count(),
         }
 
 

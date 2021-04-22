@@ -1,18 +1,49 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#newPost').addEventListener('submit', function(event) {
-        // event.preventDefault();
         newPost();
     });
     document.querySelectorAll('.edit_button').forEach(button => {
         button.onclick = () => {
             editPost(button.dataset.post);
-        };
+        }
     });
-    // document.querySelector('#like').addEventListener('click', () => likePost);
-    
-
-    // viewPosts(); 
+    document.querySelectorAll('.like_button').forEach(button => {
+        button.onclick = () => {
+            likePost(button.dataset.post);
+        }
+    });    
 });
+
+
+async function likePost(post_id) {
+    const fetcher = await fetch(`like/${post_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            liked: true
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result);
+        document.querySelector(`.like_counter_${post_id}`).innerHTML = `Likes: ${result.likes_count}`
+    });
+}
+
+
+function saveEdit(post_id) {
+    const post = document.querySelector(`.edit_button_${post_id} > textarea`);
+    fetch(`/edit/${post_id}`, {
+        method: 'POST',
+        body: JSON.stringify({
+            body_edit: post.value
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result.body);
+        document.querySelector(`.edit_button_${post_id}`).innerHTML = `<p>${result.body}</p>`;
+    })
+}
 
 
 function editPost(post_id) {
@@ -20,23 +51,13 @@ function editPost(post_id) {
     .then(response => response.json())
     .then(post => {
         console.log(post);
-        body = post.body;
+        const body = post.body;
         console.log(body);
-        document.querySelector('#post_edit_text').value = body;
+        const form = `<textarea>${body}</textarea id="post_edit_${post_id}"><button onClick="saveEdit(${post_id})">Save</button>`;
+        document.querySelector(`.edit_button_${post_id}`).innerHTML = form;
     })
 }
 
-
-
-function likePost(post_id) {
-    fetch(`like/${post_id}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-            liked: true
-        })
-    });
-    console.log("liked");
-}
 
 function newPost() {
     // document.querySelector('#posts_list').innerHTML = '';
@@ -52,29 +73,5 @@ function newPost() {
     .then(response => response.json())
     .then(result => {
         console.log(result);
-        // viewPosts();
-    });
-}
-
-function viewPosts() {
-
-    // empty the post form
-    document.querySelector('.post_body').value = '';
-
-    // load the requested posts
-    fetch('post_view')
-    .then(response => response.json())
-    .then(post => {
-        // List out each post
-        for (var i = 0; i < post.length; i++) {
-            let body = post[i].body;
-            let id = post[i].id;
-
-            const li = document.createElement('li')
-            li.innerHTML = `${post[i].id} ${post[i].author}<br> ${body}<br>${post[i].timestamp} <button onclick="likePost(${id})">Like</button><button onclick="editPost(${id})">Edit</button>`;
-            li.classList.add('post_item');
-            li.id = `post_item_${id}`;
-            document.querySelector('#posts_list').append(li);
-        }
     });
 }
